@@ -1,0 +1,88 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: amazing
+  namespace: amazing
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: amazing
+  template:
+    metadata:
+      labels:
+        app: amazing
+    spec:
+      containers:
+        - name: amazing
+          image: 751244938937.dkr.ecr.ap-southeast-3.amazonaws.com/amazing:1.0.0
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "30m"
+            limits:
+              memory: "4096Mi"
+              cpu: "2"
+          stdin: true 
+          tty: true 
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+              # httpHeaders:
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      restartPolicy: Always
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: amazing-ingress
+  namespace: amazing
+  # annotations:
+    # cert-manager.io/issuer: letsencrypt-prod 
+spec:
+  # tls:
+  # - hosts:
+  #   - amazing.bigboxapp.com
+  #   secretName: letsencrypt-nginx-amazing
+  rules:
+    - host: amazing.bigboxapp.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: amazing-service
+                port:
+                  number: 80                          
+  ingressClassName: nginx
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: amazing-service
+  namespace: amazing
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 80
+      protocol: TCP      
+  selector:
+    app: amazing

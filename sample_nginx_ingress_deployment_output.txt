@@ -1,0 +1,73 @@
+Name:                   ingress-nginx-controller
+Namespace:              nginx-ingress
+CreationTimestamp:      Thu, 15 Feb 2024 16:59:04 +0700
+Labels:                 app.kubernetes.io/component=controller
+                        app.kubernetes.io/instance=ingress-nginx
+                        app.kubernetes.io/managed-by=Helm
+                        app.kubernetes.io/name=ingress-nginx
+                        app.kubernetes.io/part-of=ingress-nginx
+                        app.kubernetes.io/version=1.9.6
+                        helm.sh/chart=ingress-nginx-4.9.1
+Annotations:            deployment.kubernetes.io/revision: 2
+                        meta.helm.sh/release-name: ingress-nginx
+                        meta.helm.sh/release-namespace: nginx-ingress
+Selector:               app.kubernetes.io/component=controller,app.kubernetes.io/instance=ingress-nginx,app.kubernetes.io/name=ingress-nginx
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:           app.kubernetes.io/component=controller
+                    app.kubernetes.io/instance=ingress-nginx
+                    app.kubernetes.io/managed-by=Helm
+                    app.kubernetes.io/name=ingress-nginx
+                    app.kubernetes.io/part-of=ingress-nginx
+                    app.kubernetes.io/version=1.9.6
+                    helm.sh/chart=ingress-nginx-4.9.1
+  Service Account:  ingress-nginx
+  Containers:
+   controller:
+    Image:           registry.k8s.io/ingress-nginx/controller:v1.9.6@sha256:1405cc613bd95b2c6edd8b2a152510ae91c7e62aea4698500d23b2145960ab9c
+    Ports:           80/TCP, 443/TCP, 8443/TCP
+    Host Ports:      0/TCP, 0/TCP, 0/TCP
+    SeccompProfile:  RuntimeDefault
+    Args:
+      /nginx-ingress-controller
+      --publish-service=$(POD_NAMESPACE)/ingress-nginx-controller
+      --election-id=ingress-nginx-leader
+      --controller-class=k8s.io/ingress-nginx
+      --ingress-class=nginx
+      --configmap=$(POD_NAMESPACE)/ingress-nginx-controller
+      --validating-webhook=:8443
+      --validating-webhook-certificate=/usr/local/certificates/cert
+      --validating-webhook-key=/usr/local/certificates/key
+    Requests:
+      cpu:      100m
+      memory:   90Mi
+    Liveness:   http-get http://:10254/healthz delay=10s timeout=1s period=10s #success=1 #failure=5
+    Readiness:  http-get http://:10254/healthz delay=10s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      POD_NAME:        (v1:metadata.name)
+      POD_NAMESPACE:   (v1:metadata.namespace)
+      LD_PRELOAD:     /usr/local/lib/libmimalloc.so
+    Mounts:
+      /usr/local/certificates/ from webhook-cert (ro)
+  Volumes:
+   webhook-cert:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  ingress-nginx-admission
+    Optional:    false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  ingress-nginx-controller-7fdbfcb8f9 (0/0 replicas created)
+NewReplicaSet:   ingress-nginx-controller-59f776b9f8 (1/1 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  18m    deployment-controller  Scaled up replica set ingress-nginx-controller-7fdbfcb8f9 to 1
+  Normal  ScalingReplicaSet  9m56s  deployment-controller  Scaled up replica set ingress-nginx-controller-59f776b9f8 to 1
+  Normal  ScalingReplicaSet  9m36s  deployment-controller  Scaled down replica set ingress-nginx-controller-7fdbfcb8f9 to 0 from 1
+
