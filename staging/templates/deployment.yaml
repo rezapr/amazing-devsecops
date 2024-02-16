@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: amazing-staging
-          image: 751244938937.dkr.ecr.ap-southeast-3.amazonaws.com/amazing:0.8.1
+          image: 751244938937.dkr.ecr.ap-southeast-3.amazonaws.com/amazing:1.2.1
           resources:
             requests:
               memory: "64Mi"
